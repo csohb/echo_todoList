@@ -1,0 +1,7 @@
+POST http://localhost:8789/save
+Content-Type: application/json
+
+{
+  "todo":"finish2",
+  "user":"yujin"
+}

@@ -9,6 +9,7 @@
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.8.2/css/all.min.css"/>
 
     <!-- JQuery -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
@@ -19,24 +20,39 @@
     <!-- Vue.js -->
     <script src="http://cdnjs.cloudflare.com/ajax/libs/vue/1.0.24/vue.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue-resource/0.7.0/vue-resource.min.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        .done{
+            text-decoration: line-through;
+        }
+    </style>
 </head>
 <body>
 <div class="container">
     <div class="row">
         <div class="col-md-4">
-            <h2>My Tasks</h2>
+            <h2>{{user}} Todo List</h2>
+            <div>
+                <input type="text" placeholder="Search With User Name" v-on:keyup.enter="getUserTask" v-model="user">
+
+            </div>
             <ul class="list-group">
-                <li class="list-group-item" v-for="task in tasks">
-                    {{ task.name }}
+                <!--"list-group-item"-->
+                <li class="list-group-item" v-for="task in tasks" v-bind:class="{done:task.completed}">
+                    {{ task.todo }}
                     <span class="pull-right">
                                 <button class="btn btn-xs btn-danger" v-on:click="deleteTask($index)">
-                                    <i class="fa fa-trash-o" aria-hidden="true"></i>
+                                    <i class="fas fa-trash" aria-hidden="true"></i>
+                                </button>
+                                <button class="btn btn-xs btn-warning" v-on:click="completeTask($index)" id="completed">
+                                    <i class="fas fa-check" aria-hidden="true"></i>
                                 </button>
                             </span>
                 </li>
             </ul>
             <div class="input-group">
-                <input type="text" class="form-control" placeholder="New Task" v-on:keyup.enter="createTask" v-model="newTask.name">
+                <input type="text" class="form-control" placeholder="New Task" v-model="newTask.todo">
+                <input type="text" class="form-control" placeholder="User Name" v-model="newTask.user">
                 <span class="input-group-btn">
                             <button class="btn btn-primary" type="button" v-on:click="createTask">Create</button>
                         </span>
@@ -51,26 +67,33 @@
 
         data: {
             tasks: [],
-            newTask: {}
+            newTask: {},
+            user:'',
+            newUser:'',
+            isDone:false
         },
+
 
         // This is run whenever the page is loaded to make sure we have a current task list
         created: function() {
             // Use the vue-resource $http client to fetch data from the /tasks route
             this.$http.get('/tasks').then(function(response) {
-                this.tasks = response.data.items ? response.data.items : []
+                this.tasks = response.data.tasks ? response.data.tasks : []
             })
         },
 
         methods: {
+            changeClass(){
+              this.isDone=!this.isDone
+            },
             createTask: function() {
-                if (!$.trim(this.newTask.name)) {
+                if (!$.trim(this.newTask.todo)) {
                     this.newTask = {}
                     return
                 }
 
                 // Post the new task to the /tasks route using the $http client
-                this.$http.put('/save', this.newTask).success(function(response) {
+                this.$http.post('/save', this.newTask).success(function(response) {
                     this.newTask.id = response.created
                     this.tasks.push(this.newTask)
                     console.log("Task created!")
@@ -81,10 +104,38 @@
                 });
             },
 
+            getUserTask:function (){
+                if (!$.trim(this.user)){
+                    this.user=''
+                    return
+                }
+
+                this.$http.get('/tasks?user='+this.user).success(function (response){
+                    this.tasks=response.tasks
+                })
+            },
+
+
+            completeTask:function (index){
+                if (this.tasks[index].completed == false) {
+                    this.tasks[index].completed=true
+                } else {
+                    this.tasks[index].completed=false
+                }
+                console.log(this.tasks[index])
+                this.$http.put('/tasks/'+this.tasks[index].id, this.tasks[index]).success(function (response){
+                    console.log("id : "+this.tasks[index].id)
+                    console.log("completed : "+this.tasks[index].completed)
+                })
+            },
+
+
             deleteTask: function(index) {
                 // Use the $http client to delete a task by its id
                 this.$http.delete('/tasks/' + this.tasks[index].id).success(function(response) {
+                    // html 안에서 삭제
                     this.tasks.splice(index, 1)
+                    console.log("id : "+this.tasks[index].id)
                     console.log("Task deleted!")
                 }).error(function(error) {
                     console.log(error)
