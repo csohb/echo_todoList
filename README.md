@@ -1,6 +1,6 @@
 # echo_todoList
 
-Web Framwork : Echo Framework
-DB : mariaDB
-ORM : GROM
-Front Framework : Vue.js
+Web Framwork : Echo Framework \n
+DB : mariaDB \n
+ORM : GROM \n 
+Front Framework : Vue.js \n
