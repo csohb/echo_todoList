@@ -7,7 +7,8 @@ import (
 )
 
 func Migration() *gorm.DB {
-	dsn := "test2:Cjswo.123@tcp(im.plea.kr:13306)/test2?charset=utf8mb4&parseTime=True&loc=Local"
+	// check your db info
+	dsn := "username:password@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local"
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic(err)
